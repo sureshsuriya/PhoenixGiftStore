@@ -1,173 +1,207 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingBag, 
-  Users, 
-  Settings, 
-  Plus, 
-  MoreVertical,
-  Search,
-  Filter,
-  BarChart3,
-  TrendingUp,
-  DollarSign,
-  Box
+  Users, ShoppingCart, DollarSign, Package, 
+  Settings, LogOut, TrendingUp, Menu, Bell
 } from 'lucide-react';
 
-const stats = [
-  { label: 'Total Revenue', value: '₹45,231', icon: <DollarSign size={20} />, trend: '+12.5%' },
-  { label: 'Total Orders', value: '156', icon: <ShoppingBag size={20} />, trend: '+8.2%' },
-  { label: 'Active Products', value: '32', icon: <Package size={20} />, trend: '+2' },
-  { label: 'Total Customers', value: '1,240', icon: <Users size={20} />, trend: '+54' },
-];
-
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    const auth = localStorage.getItem('adminAuth');
+    if (auth === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (username === 'admin' && password === 'admin123') {
+      setIsAuthenticated(true);
+      localStorage.setItem('adminAuth', 'true');
+      setError('');
+    } else {
+      setError('Invalid credentials. Hint: admin / admin123');
+    }
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('adminAuth');
+  };
+
+  if (!isMounted) return null;
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--primary-light), var(--bg-primary))' }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          style={{ background: 'white', padding: '40px', borderRadius: '24px', boxShadow: 'var(--shadow-xl)', width: '100%', maxWidth: '400px' }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+            <h1 className="serif" style={{ fontSize: '2rem', color: 'var(--primary-dark)', marginBottom: '8px' }}>Admin Login</h1>
+            <p style={{ color: 'var(--text-secondary)' }}>Access the advanced dashboard</p>
+          </div>
+          
+          {error && <div style={{ background: '#fee2e2', color: '#ef4444', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.9rem' }}>{error}</div>}
+          
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem' }}>Username</label>
+              <input 
+                type="text" value={username} onChange={e => setUsername(e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', outline: 'none' }}
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, fontSize: '0.9rem' }}>Password</label>
+              <input 
+                type="password" value={password} onChange={e => setPassword(e.target.value)}
+                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e5e7eb', outline: 'none' }}
+              />
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ marginTop: '8px', padding: '16px' }}>Login</button>
+          </form>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Dashboard View
+  const stats = [
+    { title: 'Total Revenue', value: '₹1,24,500', icon: DollarSign, color: '#10b981', bg: '#ecfdf5' },
+    { title: 'Active Orders', value: '45', icon: ShoppingCart, color: '#3b82f6', bg: '#eff6ff' },
+    { title: 'Total Customers', value: '1,204', icon: Users, color: '#8b5cf6', bg: '#f5f3ff' },
+    { title: 'Products', value: '32', icon: Package, color: '#f59e0b', bg: '#fffbeb' }
+  ];
+
+  const recentOrders = [
+    { id: '#ORD-001', customer: 'Rahul Sharma', product: 'Classic Polaroids', amount: '₹249', status: 'Processing' },
+    { id: '#ORD-002', customer: 'Priya Patel', product: 'Pencil Art', amount: '₹899', status: 'Shipped' },
+    { id: '#ORD-003', customer: 'Amit Kumar', product: 'Customized Photo Frame', amount: '₹499', status: 'Delivered' },
+    { id: '#ORD-004', customer: 'Neha Singh', product: 'Polaroids Keychain', amount: '₹199', status: 'Processing' },
+  ];
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: '#f8fafc', color: '#1f2937' }}>
       {/* Sidebar */}
-      <aside style={{ width: '280px', background: 'white', borderRight: '1px solid #eee', padding: '30px' }}>
-        <div style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ background: 'var(--primary)', color: 'white', padding: '8px', borderRadius: '8px' }}>
-            <Box size={24} />
-          </div>
-          <h2 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Admin Panel</h2>
+      <div style={{ width: '250px', background: 'white', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ padding: '24px', borderBottom: '1px solid #e5e7eb' }}>
+          <h2 className="serif" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary-dark)' }}>Pheonix Gifts</h2>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-light)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '1px' }}>Admin Panel</span>
         </div>
-        
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {[
-            { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
-            { id: 'products', label: 'Products', icon: <Package size={18} /> },
-            { id: 'orders', label: 'Orders', icon: <ShoppingBag size={18} /> },
-            { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={18} /> },
-            { id: 'settings', label: 'Settings', icon: <Settings size={18} /> },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '12px 16px',
-                borderRadius: '8px',
-                color: activeTab === item.id ? 'var(--primary-dark)' : '#666',
-                background: activeTab === item.id ? 'var(--primary-light)' : 'transparent',
-                fontWeight: activeTab === item.id ? '600' : '400',
-                width: '100%',
-                textAlign: 'left'
-              }}
-            >
-              {item.icon} {item.label}
+        <nav style={{ padding: '24px 12px', flexGrow: 1, display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {['Dashboard', 'Orders', 'Products', 'Customers', 'Analytics'].map((item, i) => (
+            <button key={i} style={{ border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '12px', background: i === 0 ? 'var(--primary-light)' : 'transparent', color: i === 0 ? 'var(--primary-dark)' : 'var(--text-secondary)', fontWeight: 600, textAlign: 'left' }}>
+              {i === 0 && <TrendingUp size={20} />}
+              {i === 1 && <ShoppingCart size={20} />}
+              {i === 2 && <Package size={20} />}
+              {i === 3 && <Users size={20} />}
+              {i === 4 && <Settings size={20} />}
+              {item}
             </button>
           ))}
         </nav>
-      </aside>
+        <div style={{ padding: '24px' }}>
+          <button onClick={handleLogout} style={{ border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '12px', color: '#ef4444', background: 'transparent', fontWeight: 600, width: '100%', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#fee2e2'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
+            <LogOut size={20} /> Logout
+          </button>
+        </div>
+      </div>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '40px' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-          <div>
-            <h1 style={{ fontSize: '1.8rem', fontWeight: '700', marginBottom: '4px' }}>Welcome back, Admin!</h1>
-            <p style={{ color: '#666' }}>Here's what's happening with Pheonix Gifts today.</p>
+        <header style={{ background: 'white', padding: '20px 32px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <button style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--text-secondary)' }}><Menu size={24} /></button>
+            <h1 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>Overview</h1>
           </div>
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <div style={{ position: 'relative' }}>
-              <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
-              <input 
-                type="text" 
-                placeholder="Search anything..." 
-                style={{ padding: '10px 12px 10px 40px', borderRadius: '8px', border: '1px solid #ddd', width: '250px' }}
-              />
-            </div>
-            <button className="btn btn-primary" style={{ padding: '10px 20px' }}>
-              <Plus size={18} /> Add Product
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            <button style={{ border: 'none', background: 'transparent', cursor: 'pointer', position: 'relative', color: 'var(--text-secondary)' }}>
+              <Bell size={20} />
+              <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--primary)', width: '8px', height: '8px', borderRadius: '50%' }} />
             </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>Admin User</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-light)' }}>admin@pheonix.gifts</div>
+              </div>
+              <div style={{ width: '40px', height: '40px', background: 'var(--primary)', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>A</div>
+            </div>
           </div>
         </header>
 
-        {/* Stats Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '24px', marginBottom: '40px' }}>
-          {stats.map((stat, i) => (
-            <div key={i} className="glass" style={{ padding: '24px', borderRadius: '16px', background: 'white' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <div style={{ color: 'var(--primary)', background: 'var(--primary-light)', padding: '10px', borderRadius: '10px' }}>
-                  {stat.icon}
+        {/* Content */}
+        <main style={{ padding: '32px', flexGrow: 1, overflowY: 'auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+            {stats.map((stat, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} style={{ background: 'white', padding: '24px', borderRadius: '20px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '16px', background: stat.bg, color: stat.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <stat.icon size={24} />
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 500 }}>{stat.title}</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)' }}>{stat.value}</div>
+                  </div>
                 </div>
-                <span style={{ color: '#22c55e', fontWeight: '600', fontSize: '0.85rem' }}>{stat.trend}</span>
-              </div>
-              <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '4px' }}>{stat.label}</p>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: '700' }}>{stat.value}</h3>
-            </div>
-          ))}
-        </div>
-
-        {/* Recent Orders / Product Table */}
-        <div className="glass" style={{ background: 'white', borderRadius: '16px', padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '1.2rem', fontWeight: '700' }}>Recent Orders</h2>
-            <button style={{ color: 'var(--primary)', fontWeight: '600', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              View all <ArrowRight size={14} />
-            </button>
+                <div style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <TrendingUp size={14} /> +12.5% from last month
+                </div>
+              </motion.div>
+            ))}
           </div>
-          
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ textAlign: 'left', borderBottom: '1px solid #eee' }}>
-                <th style={{ padding: '16px 8px', color: '#666', fontWeight: '600' }}>Order ID</th>
-                <th style={{ padding: '16px 8px', color: '#666', fontWeight: '600' }}>Customer</th>
-                <th style={{ padding: '16px 8px', color: '#666', fontWeight: '600' }}>Product</th>
-                <th style={{ padding: '16px 8px', color: '#666', fontWeight: '600' }}>Amount</th>
-                <th style={{ padding: '16px 8px', color: '#666', fontWeight: '600' }}>Status</th>
-                <th style={{ padding: '16px 8px', color: '#666', fontWeight: '600' }}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {[1, 2, 3, 4, 5].map((item) => (
-                <tr key={item} style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '16px 8px', fontWeight: '500' }}>#PG-2024-{1000 + item}</td>
-                  <td style={{ padding: '16px 8px' }}>Rahul Sharma</td>
-                  <td style={{ padding: '16px 8px' }}>Pencil Art Portrait</td>
-                  <td style={{ padding: '16px 8px' }}>₹1,499</td>
-                  <td style={{ padding: '16px 8px' }}>
-                    <span style={{ 
-                      padding: '4px 12px', 
-                      borderRadius: '20px', 
-                      fontSize: '0.8rem', 
-                      background: item % 2 === 0 ? 'var(--primary-light)' : '#f3e8ff', 
-                      color: item % 2 === 0 ? 'var(--primary)' : 'var(--primary-dark)' 
-                    }}>
-                      {item % 2 === 0 ? 'Delivered' : 'Processing'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '16px 8px', textAlign: 'right' }}>
-                    <button style={{ color: '#999' }}><MoreVertical size={18} /></button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </main>
 
-      <style jsx>{`
-        .icon-btn { color: #666; }
-        .icon-btn:hover { color: var(--primary); }
-      `}</style>
+          <div style={{ background: 'white', borderRadius: '20px', padding: '24px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, margin: 0 }}>Recent Orders</h2>
+              <button style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem' }}>View All</button>
+            </div>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '2px solid #f1f5f9' }}>
+                    <th style={{ padding: '16px 8px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.9rem' }}>Order ID</th>
+                    <th style={{ padding: '16px 8px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.9rem' }}>Customer</th>
+                    <th style={{ padding: '16px 8px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.9rem' }}>Product</th>
+                    <th style={{ padding: '16px 8px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.9rem' }}>Amount</th>
+                    <th style={{ padding: '16px 8px', color: 'var(--text-secondary)', fontWeight: 600, fontSize: '0.9rem' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentOrders.map((order, i) => (
+                    <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '16px 8px', fontWeight: 600 }}>{order.id}</td>
+                      <td style={{ padding: '16px 8px' }}>{order.customer}</td>
+                      <td style={{ padding: '16px 8px', color: 'var(--text-secondary)' }}>{order.product}</td>
+                      <td style={{ padding: '16px 8px', fontWeight: 600 }}>{order.amount}</td>
+                      <td style={{ padding: '16px 8px' }}>
+                        <span style={{ 
+                          padding: '6px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600,
+                          background: order.status === 'Delivered' ? '#dcfce7' : order.status === 'Shipped' ? '#e0e7ff' : '#fef9c3',
+                          color: order.status === 'Delivered' ? '#166534' : order.status === 'Shipped' ? '#3730a3' : '#854d0e'
+                        }}>
+                          {order.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
-  );
-}
-
-// Minimal ArrowRight for the View all link since I didn't import it in this file's specific import block (fixed below)
-function ArrowRight({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14M12 5l7 7-7 7"/>
-    </svg>
   );
 }
