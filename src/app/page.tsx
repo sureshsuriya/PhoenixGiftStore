@@ -43,6 +43,7 @@ export default function Home() {
   const [filter, setFilter] = useState('All');
   const [loginStep, setLoginStep] = useState<'login' | 'signup' | 'referral' | 'success'>('login');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
   const [customizingProduct, setCustomizingProduct] = useState<Product | null>(null);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [signupForm, setSignupForm] = useState({ name: '', email: '', password: '' });
@@ -53,8 +54,11 @@ export default function Home() {
   const [orderNowCart, setOrderNowCart] = useState<CartItem[]>([]);
 
   useEffect(() => { 
-    setMounted(true); 
-    if (localStorage.getItem('pheonix_user')) setIsLoggedIn(true);
+    setMounted(true);
+    // Restore server-backed session: only userId + name are stored (no passwords)
+    const storedId = localStorage.getItem('pheonix_user_id');
+    const storedName = localStorage.getItem('pheonix_user_name');
+    if (storedId) { setIsLoggedIn(true); setUserName(storedName || ''); }
     
     // Dynamically fetch products
     fetch('/api/products')
@@ -76,76 +80,103 @@ export default function Home() {
       }).catch(err => console.log('Products dynamic fetch error', err));
   }, []);
 
+  // ── Server-backed Login ────────────────────────────────────────────────────
   const handleLogin = async () => {
     setLoginError('');
-    if (!loginForm.email || !loginForm.password) return setLoginError('Please enter both email and password.');
-    if (!loginForm.email.includes('@') || !loginForm.email.includes('.')) return setLoginError('Please enter a valid email address.');
-    if (loginForm.password.length < 6) return setLoginError('Password must be at least 6 characters.');
+    if (!loginForm.email || !loginForm.password)
+      return setLoginError('Please enter both email and password.');
 
     setIsLoggingIn(true);
-    await new Promise(r => setTimeout(r, 800));
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginForm.email, password: loginForm.password }),
+      });
+      const data = await res.json();
 
-    const accountsStr = localStorage.getItem('pheonix_accounts');
-    const accounts = accountsStr ? JSON.parse(accountsStr) : [];
-    const user = accounts.find((a: any) => a.email === loginForm.email);
+      if (!data.success) {
+        setLoginError(data.error || 'Login failed. Please try again.');
+        return;
+      }
 
-    if (!user) {
+      // Persist only safe, non-sensitive identifiers
+      localStorage.setItem('pheonix_user_id', data.user.id);
+      localStorage.setItem('pheonix_user_name', data.user.name);
+      localStorage.setItem('pheonix_user_email', data.user.email);
+      if (data.user.referralCode)
+        localStorage.setItem('pheonix_referral_code', data.user.referralCode);
+
+      setUserName(data.user.name);
+      setIsLoggedIn(true);
+      setLoginStep('success');
+      setLoginForm({ email: '', password: '' });
+      setLoginError('');
+      setTimeout(() => { setLoginOpen(false); setLoginStep('login'); }, 1800);
+      setToast(`Welcome back, ${data.user.name}! 🎉`);
+      setTimeout(() => setToast(null), 3000);
+    } catch {
+      setLoginError('Network error. Please check your connection.');
+    } finally {
       setIsLoggingIn(false);
-      return setLoginError('No account found with this email. Please sign up first.');
     }
-    if (user.password !== loginForm.password) {
-      setIsLoggingIn(false);
-      return setLoginError('Incorrect password. Please try again.');
-    }
-
-    setIsLoggingIn(false);
-    localStorage.setItem('pheonix_user', loginForm.email);
-    localStorage.setItem('pheonix_user_name', user.name || 'User');
-    setIsLoggedIn(true);
-    setLoginStep('success');
-    setLoginForm({email:'', password:''});
-    setLoginError('');
-    setTimeout(() => { setLoginOpen(false); setLoginStep('login'); }, 1800);
-    setToast(`Welcome back, ${user.name || 'User'}! 🎉`);
-    setTimeout(() => setToast(null), 3000);
   };
 
+  // ── Server-backed Signup ───────────────────────────────────────────────────
   const handleSignup = async () => {
     setLoginError('');
-    if (!signupForm.name || !signupForm.email || !signupForm.password) return setLoginError('Please fill all fields.');
-    if (!signupForm.email.includes('@') || !signupForm.email.includes('.')) return setLoginError('Please enter a valid email address.');
-    if (signupForm.password.length < 6) return setLoginError('Password must be at least 6 characters.');
+    if (!signupForm.name || !signupForm.email || !signupForm.password)
+      return setLoginError('Please fill all fields.');
 
     setIsLoggingIn(true);
-    await new Promise(r => setTimeout(r, 800));
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: signupForm.name,
+          email: signupForm.email,
+          password: signupForm.password,
+        }),
+      });
+      const data = await res.json();
 
-    const accountsStr = localStorage.getItem('pheonix_accounts');
-    const accounts = accountsStr ? JSON.parse(accountsStr) : [];
-    if (accounts.some((a: any) => a.email === signupForm.email)) {
+      if (!data.success) {
+        setLoginError(data.error || 'Sign up failed. Please try again.');
+        return;
+      }
+
+      // Persist only safe, non-sensitive identifiers
+      localStorage.setItem('pheonix_user_id', data.user.id);
+      localStorage.setItem('pheonix_user_name', data.user.name);
+      localStorage.setItem('pheonix_user_email', data.user.email);
+      if (data.user.referralCode)
+        localStorage.setItem('pheonix_referral_code', data.user.referralCode);
+
+      setUserName(data.user.name);
+      setIsLoggedIn(true);
+      setLoginStep('success');
+      setSignupForm({ name: '', email: '', password: '' });
+      setLoginError('');
+      setTimeout(() => { setLoginOpen(false); setLoginStep('login'); }, 1800);
+      setToast(`Welcome, ${data.user.name}! Account created 🎉`);
+      setTimeout(() => setToast(null), 3000);
+    } catch {
+      setLoginError('Network error. Please check your connection.');
+    } finally {
       setIsLoggingIn(false);
-      return setLoginError('An account with this email already exists. Try signing in.');
     }
-
-    const newUser = { name: signupForm.name, email: signupForm.email, password: signupForm.password };
-    accounts.push(newUser);
-    localStorage.setItem('pheonix_accounts', JSON.stringify(accounts));
-
-    setIsLoggingIn(false);
-    localStorage.setItem('pheonix_user', signupForm.email);
-    localStorage.setItem('pheonix_user_name', signupForm.name);
-    setIsLoggedIn(true);
-    setLoginStep('success');
-    setSignupForm({name:'', email:'', password:''});
-    setLoginError('');
-    setTimeout(() => { setLoginOpen(false); setLoginStep('login'); }, 1800);
-    setToast(`Welcome, ${signupForm.name}! Account created 🎉`);
-    setTimeout(() => setToast(null), 3000);
   };
 
+  // ── Logout ─────────────────────────────────────────────────────────────────
   const handleLogout = () => {
-    localStorage.removeItem('pheonix_user');
+    localStorage.removeItem('pheonix_user_id');
     localStorage.removeItem('pheonix_user_name');
+    localStorage.removeItem('pheonix_user_email');
+    localStorage.removeItem('pheonix_referral_code');
     setIsLoggedIn(false);
+    setUserName('');
+    setCart([]);
     setToast('Successfully signed out.');
     setTimeout(() => setToast(null), 3000);
   };
@@ -425,7 +456,7 @@ export default function Home() {
                 </motion.div>
                 <h2 className="serif heading-md" style={{marginBottom:10}}>You're in! 🎉</h2>
                 <p style={{color:'var(--text-secondary)',fontSize:'1rem'}}>
-                  Welcome, <strong>{localStorage.getItem('pheonix_user_name') || 'User'}</strong>!<br/>Redirecting you now...
+                  Welcome, <strong>{userName || 'User'}</strong>!<br/>Redirecting you now...
                 </p>
                 <motion.div style={{height:4,background:'#f3f4f6',borderRadius:99,marginTop:24,overflow:'hidden'}}>
                   <motion.div initial={{width:'0%'}} animate={{width:'100%'}} transition={{duration:1.8,ease:'linear'}} style={{height:'100%',background:'linear-gradient(90deg,#f43f5e,#be123c)',borderRadius:99}}/>
@@ -439,12 +470,14 @@ export default function Home() {
                   <p style={{color:'var(--text-secondary)',marginTop:8}}>Share your code. When your friend orders, you both save ₹100!</p>
                 </div>
                 <div style={{background:'#f8fafc',border:'2px dashed #cbd5e1',padding:'18px 20px',borderRadius:16,display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}}>
-                  <span style={{fontWeight:900,letterSpacing:'2px',fontSize:'1.15rem',color:'var(--text-primary)'}}>PHX-GFT-2026</span>
-                  <button onClick={()=>{navigator.clipboard.writeText('PHX-GFT-2026');}} style={{color:'var(--primary)',fontWeight:800,background:'var(--primary-light)',padding:'6px 14px',borderRadius:8,fontSize:'0.85rem'}}>
+                  <span style={{fontWeight:900,letterSpacing:'2px',fontSize:'1.15rem',color:'var(--text-primary)'}}>
+                    {localStorage.getItem('pheonix_referral_code') || 'PHX-GFT-2026'}
+                  </span>
+                  <button onClick={()=>{navigator.clipboard.writeText(localStorage.getItem('pheonix_referral_code') || 'PHX-GFT-2026');}} style={{color:'var(--primary)',fontWeight:800,background:'var(--primary-light)',padding:'6px 14px',borderRadius:8,fontSize:'0.85rem'}}>
                     <Share2 size={14} style={{display:'inline',marginRight:4}}/>Copy
                   </button>
                 </div>
-                <a href="whatsapp://send?text=Hey! Check out Pheonix Gifts. Use my code PHX-GFT-2026 for ₹100 off: https://pheonixgifts.in" className="btn" style={{width:'100%',background:'#25D366',color:'white',padding:'15px',display:'flex',justifyContent:'center',gap:8}}>
+                <a href={`whatsapp://send?text=Hey! Check out Pheonix Gifts. Use my code ${localStorage.getItem('pheonix_referral_code') || 'PHX-GFT-2026'} for ₹100 off: https://pheonixgifts.in`} className="btn" style={{width:'100%',background:'#25D366',color:'white',padding:'15px',display:'flex',justifyContent:'center',gap:8}}>
                   <MessageCircle size={18}/> Share via WhatsApp
                 </a>
               </>
