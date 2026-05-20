@@ -360,8 +360,8 @@ export default function Home() {
               ))}
             </div>
             <div style={{display:'flex',gap:16,justifyContent:'center',flexWrap:'wrap'}}>
-              <button onClick={()=>window.open('https://instagram.com/Pheonix._.gifts','_blank')} className="btn btn-primary" style={{background:'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)'}}>
-                📸 Follow @Pheonix._.gifts
+              <button onClick={()=>window.open('https://www.instagram.com/phoenix._.gifts','_blank')} className="btn btn-primary" style={{background:'linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)'}}>
+                📸 Follow @phoenix._.gifts
               </button>
               <a href="https://wa.me/919999999999" target="_blank" rel="noreferrer" className="btn" style={{background:'#25D366',color:'white'}}>
                 <MessageCircle size={18}/> WhatsApp Us

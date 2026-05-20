@@ -27,7 +27,7 @@ export default function Footer() {
             Where memories turn into beautiful creations. Every product is crafted with creativity and care.
           </p>
           <div style={{ display:'flex', gap:10, marginTop:20 }}>
-            <a href="https://instagram.com/Pheonix._.gifts" target="_blank" rel="noreferrer"
+            <a href="https://www.instagram.com/phoenix._.gifts" target="_blank" rel="noreferrer"
               style={{ width:38, height:38, borderRadius:10, background:'linear-gradient(45deg,#f09433,#dc2743,#bc1888)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem', color:'white', textDecoration:'none' }}>📸</a>
             <a href="https://wa.me/919999999999" target="_blank" rel="noreferrer"
               style={{ width:38, height:38, borderRadius:10, background:'#25D366', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem', textDecoration:'none' }}>💬</a>
@@ -50,7 +50,7 @@ export default function Footer() {
         <div>
           <h4 style={{ color:'white', fontSize:'0.75rem', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:18 }}>Get In Touch</h4>
           <div style={{ fontSize:'0.875rem', lineHeight:2.2, color:'rgba(255,255,255,0.45)' }}>
-            <p>📸 @Pheonix._.gifts</p>
+            <p>📸 @phoenix._.gifts</p>
             <p>💬 WhatsApp us</p>
             <p>📍 Pan-India Delivery</p>
             <p>⏰ 24/7 Support</p>

@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
             <div style="padding:32px;">
               <p style="font-size:16px;color:#374151;">Hi <strong>${name}</strong>,</p>
               <p style="color:#6b7280;line-height:1.7;">Thank you for ordering from Pheonix Gifts! 🎁 Your order <strong>${orderId}</strong> for <strong>₹${total}</strong> will be dispatched via courier within <strong>2-3 business days</strong>.</p>
-              <p style="color:#6b7280;">Questions? DM us on Instagram <strong>@Pheonix._.gifts</strong></p>
+              <p style="color:#6b7280;">Questions? DM us on Instagram <strong>@phoenix._.gifts</strong></p>
               <p style="color:#374151;font-weight:600;margin-top:24px;">With love, Team Pheonix Gifts 💝</p>
               <p style="font-size:12px;color:#9ca3af;margin-top:16px;">Built by Triple Tech Phoenix</p>
             </div>
