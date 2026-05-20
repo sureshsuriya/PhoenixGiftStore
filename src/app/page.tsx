@@ -41,7 +41,7 @@ export default function Home() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [toast, setToast] = useState<string|null>(null);
   const [filter, setFilter] = useState('All');
-  const [loginStep, setLoginStep] = useState<'login'|'signup'|'referral'>('login');
+  const [loginStep, setLoginStep] = useState<'login' | 'signup' | 'referral' | 'success'>('login');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [customizingProduct, setCustomizingProduct] = useState<Product | null>(null);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
