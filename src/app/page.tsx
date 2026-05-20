@@ -181,13 +181,9 @@ export default function Home() {
     setTimeout(() => setToast(null), 3000);
   };
 
+  // Guests can freely browse, customize, and add to cart.
+  // Login is only required at checkout.
   const addToCart = (p: Product) => {
-    if (!isLoggedIn) {
-      setLoginOpen(true);
-      setToast("Please sign in first to add items to your cart.");
-      setTimeout(() => setToast(null), 3000);
-      return;
-    }
     setCustomizingProduct(p);
   };
 
@@ -209,6 +205,14 @@ export default function Home() {
   };
 
   const handleOrderNow = (product: Product, customization: Customization) => {
+    if (!isLoggedIn) {
+      setLoginOpen(true);
+      setLoginStep('login');
+      setLoginError('');
+      setToast('Please sign in to place your order. 🛒');
+      setTimeout(() => setToast(null), 3500);
+      return;
+    }
     // Build a single-item cart for direct checkout
     const singleItem: CartItem = {
       ...product,
@@ -249,7 +253,19 @@ export default function Home() {
 
       {/* Cart */}
       <CartDrawer cart={cart} isOpen={cartOpen} onClose={()=>setCartOpen(false)} onUpdateQty={updateQty} onRemove={removeFromCart}
-        onCheckout={()=>{setCartOpen(false);setCheckoutOpen(true);}}/>
+        onCheckout={()=>{
+          setCartOpen(false);
+          if (!isLoggedIn) {
+            setLoginOpen(true);
+            setLoginStep('login');
+            setLoginError('');
+            setLoginForm({email:'',password:''});
+            setToast('Please sign in to complete your order. 🛒');
+            setTimeout(()=>setToast(null), 3500);
+            return;
+          }
+          setCheckoutOpen(true);
+        }}/>
 
       {/* Checkout */}
       <CheckoutModal 
